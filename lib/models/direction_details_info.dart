@@ -10,6 +10,6 @@ class DirectionDetailsInfo{
     this.distance_value,
     this.e_points,
     this.duration_text,
-    this.duration_value
+    this.duration_value,
   });
 }

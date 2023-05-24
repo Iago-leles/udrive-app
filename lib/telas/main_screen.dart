@@ -1,8 +1,11 @@
+// ignore_for_file: prefer_const_constructors, sort_child_properties_last, use_build_context_synchronously, unused_field, prefer_final_fields
+
 import 'dart:async';
 
 import 'package:distribuida/assistants/assistants_methods.dart';
 import 'package:distribuida/global/global.dart';
 import 'package:distribuida/global/map_key.dart';
+import 'package:distribuida/models/direction_details_info.dart';
 import 'package:distribuida/telas/precise_pickup_location.dart';
 import 'package:distribuida/telas/search_places_screen.dart';
 import 'package:distribuida/widgets/progress_dialog.dart';
@@ -11,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoder2/geocoder2.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -104,9 +108,16 @@ class _MainScreenState extends State<MainScreen> {
 
       var directionsDetailsInfo = await AssistantsMethods.obtainOriginToDestinationDirectionDetails(originLatLng, destinationLatLng);
 
+      var decimalValue = directionsDetailsInfo.distance_value! / 1000;
+      var valuePure = NumberFormat("#,##0.00", "pt_BR").format(decimalValue);
+
+
       setState(() {
         tripDirectionDetailsInfo = directionsDetailsInfo;
+        valueRun = valuePure;
       });
+
+      print("Valor da corrida: ${directionsDetailsInfo.distance_value}");
 
       Navigator.pop(context);
 
@@ -162,17 +173,32 @@ class _MainScreenState extends State<MainScreen> {
       markerId: MarkerId("originID"),
       infoWindow: InfoWindow(
         title: originPosition.locationName, 
-        snippet: "Origin"),
+        snippet: "Origem"),
         position: originLatLng,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         );
+
+    
+
+    // Container valueRunContainer = Container(
+    //   padding: EdgeInsets.all(16),
+    //   color: Colors.blue,
+    //   child: Text(
+    //     'Valor da corrida: R\$ ${directionsDetailsInfo.distance_value}',
+    //     style: TextStyle(
+    //       color: Colors.white,
+    //       fontSize: 18,
+    //       fontWeight: FontWeight.bold,
+    //     ),
+    //   ),
+    // );
 
         
     Marker destinationMarker = Marker(
       markerId: MarkerId("destinationID"),
       infoWindow: InfoWindow(
         title: destinationPosition.locationName, 
-        snippet: "Destination"),
+        snippet: "Destino"),
         position: destinationLatLng,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
         );
@@ -222,21 +248,26 @@ class _MainScreenState extends State<MainScreen> {
 
     checkIfLocationPermissionAlloned();
   }
-
+bool showContainer = false;
   @override
   Widget build(BuildContext context) {
+    
+      
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: Text("Bem vindo!"),
+         ),
         body: Stack(
           children: [
             GoogleMap(
               mapType: MapType.normal,
               myLocationEnabled: true,
               zoomGesturesEnabled: true,
-              zoomControlsEnabled: true,
+              zoomControlsEnabled: false,
               initialCameraPosition: _kGooglePlex,
               polylines: polylineSet,
               markers: markersSet,
@@ -251,6 +282,8 @@ class _MainScreenState extends State<MainScreen> {
 
                 locateUserPosition();
               },
+
+              
               
             ),
             Positioned(
@@ -300,7 +333,7 @@ class _MainScreenState extends State<MainScreen> {
                                             Provider.of<AppInfo>(context).userPickUpLocation != null
                                                 ? "${(Provider.of<AppInfo>(context)
                                                             .userPickUpLocation!
-                                                            .locationName!)
+                                                            .getLocationName())
                                                         .substring(0, 40)}..."
                                                 : "Nenhum endereço selecionado",
                                             style: TextStyle(
@@ -336,6 +369,14 @@ class _MainScreenState extends State<MainScreen> {
                                       } 
 
                                       await drawPolylineFromOriginToDestination();
+                                    
+                                      setState(() {
+                                        if(!showContainer){
+                                          showContainer = !showContainer;
+                                        }
+                                        
+                                      });
+                                      
                                     },
                                     child: Row(
                                       children: [
@@ -359,7 +400,7 @@ class _MainScreenState extends State<MainScreen> {
                                               Provider.of<AppInfo>(context).userDropOffLocation !=
                                                       null ? Provider.of<AppInfo>(context)
                                                               .userDropOffLocation!
-                                                              .locationName!
+                                                              .getLocationName()+ "..."
                                                   : "Nenhum endereço selecionado",
                                               style: TextStyle(
                                                   color: Colors.grey,
@@ -369,8 +410,10 @@ class _MainScreenState extends State<MainScreen> {
                                           ],
                                         )
                                       ],
+                                      
                                     ),
                                   ),
+                                  
                                 )
                               ],
                             ),
@@ -380,7 +423,28 @@ class _MainScreenState extends State<MainScreen> {
                     ),
 
                     SizedBox(height: 5,),
-
+                    
+                    if(showContainer)
+                    Container(
+                        padding: EdgeInsets.fromLTRB(50, 10, 50, 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: Color.fromARGB(255, 119, 183, 255), // Cor da borda
+                            width: 5, // Espessura da borda
+                          ),
+                        ),
+                        child: Text(
+                          'Valor da corrida:      R\$${valueRun} ',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 0, 119, 254),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

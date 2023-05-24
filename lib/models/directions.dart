@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Directions{
   String? humanReadableAddress;
   String? locationName;
@@ -12,5 +14,16 @@ class Directions{
     this.locationLatitude,
     this.locationLongitude,
   });
+
+   getLocationName<String>(){
+    int variavelLength = locationName!.length;
+
+    if(locationName!.length >= 40 ){
+      return locationName!.substring(0,40);
+    }
+   
+    return this.locationName;
+  }
 }
+
 
