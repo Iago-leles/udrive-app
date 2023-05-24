@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, sort_child_properties_last, use_build_context_synchronously, unused_field, prefer_final_fields
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:distribuida/assistants/assistants_methods.dart';
 import 'package:distribuida/global/global.dart';
@@ -18,6 +19,7 @@ import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 import '../infoHandler/app_info.dart';
 import '../models/directions.dart';
@@ -108,8 +110,12 @@ class _MainScreenState extends State<MainScreen> {
 
       var directionsDetailsInfo = await AssistantsMethods.obtainOriginToDestinationDirectionDetails(originLatLng, destinationLatLng);
 
-      var decimalValue = directionsDetailsInfo.distance_value! / 1000;
+      var valueResponse = await calcularCorrida(directionsDetailsInfo.distance_value!);
+
+      var message = valueResponse["Message"];
+      var decimalValue = double.parse(message) / 2000;
       var valuePure = NumberFormat("#,##0.00", "pt_BR").format(decimalValue);
+
 
 
       setState(() {
@@ -232,6 +238,23 @@ class _MainScreenState extends State<MainScreen> {
         });
 
     }
+
+ Future<Map<String, dynamic>> calcularCorrida(int distance) async {
+    final url = Uri.parse('http://192.168.1.18:3300/calculate');
+    final headers = {'Content-Type': 'application/json'};
+    final body = jsonEncode({'distance': distance});
+
+    final response = await http.post(url, headers: headers, body: body);
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      return responseData;
+    } else {
+      throw Exception('Falha ao chamar a API: ${response.statusCode}');
+    }
+
+    
+  }
 
   checkIfLocationPermissionAlloned() async {
     _locationPermission = await Geolocator.requestPermission();
@@ -370,6 +393,7 @@ bool showContainer = false;
 
                                       await drawPolylineFromOriginToDestination();
                                     
+                                      
                                       setState(() {
                                         if(!showContainer){
                                           showContainer = !showContainer;

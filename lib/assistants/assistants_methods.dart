@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:distribuida/assistants/request_assistants.dart';
 import 'package:distribuida/models/direction_details_info.dart';
 import 'package:distribuida/models/directions.dart';
@@ -15,7 +17,6 @@ class AssistantsMethods {
     String apiUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$mapKey";
     String humanReadableAddress = "";
 
-print(apiUrl);
     var requestResponse = await RequestAssistant.receiveRequest(apiUrl);
 
     if(requestResponse != "Erro Ocurred. Failed. No Response"){
@@ -51,4 +52,6 @@ print(apiUrl);
 
     return directionDetailsInfo;
   }
+
+  
 }
