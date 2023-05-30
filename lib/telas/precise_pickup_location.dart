@@ -127,14 +127,21 @@ locateUserPosition() async {
               left: 20,
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  color: Colors.white,
+                  border: Border.all(color: Color.fromARGB(255, 255, 255, 255)),
+                  borderRadius: BorderRadius.circular(6),
+                  color: Colors.blue,
                 ),
                 padding: EdgeInsets.all(20),
                 child: Text(
                   Provider.of<AppInfo>(context).userPickUpLocation != null ? (Provider.of<AppInfo>(context).userPickUpLocation!.locationName!).substring(0, 40) + "..." : "Sem endereço",
                   overflow: TextOverflow.visible,
                   softWrap: true,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16
+                  ),
+                  
                 ),
               ),
             ),

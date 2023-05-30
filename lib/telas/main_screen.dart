@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, sort_child_properties_last, use_build_context_synchronously, unused_field, prefer_final_fields
+// ignore_for_file: prefer_const_constructors, sort_child_properties_last, use_build_context_synchronously, unused_field, prefer_final_fields, unused_local_variable
 
 import 'dart:async';
 import 'dart:convert';
@@ -64,8 +64,6 @@ class _MainScreenState extends State<MainScreen> {
   Set<Marker> markersSet = {};
   Set<Circle> circlesSet = {};
 
-  // String userName = "";
-  // String userEmail = "";
 
   bool openNavigationDrawer = true;
 
@@ -74,24 +72,16 @@ class _MainScreenState extends State<MainScreen> {
   BitmapDescriptor? activeNearbyIcon;
 
   locateUserPosition() async {
-    Position cPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+    Position cPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     userCurrentPosition = cPosition;
 
-    LatLng latLngPosition =
-        LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
-    CameraPosition cameraPosition =
-        CameraPosition(target: latLngPosition, zoom: 15);
+    LatLng latLngPosition = LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
+    CameraPosition cameraPosition = CameraPosition(target: latLngPosition, zoom: 15);
 
-    newGoogleMapController!
-        .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-    String humanReadableAddress =
-        await AssistantsMethods.searchAdressForGeographicCoOrdinates(
-            userCurrentPosition!, context);
-    // initializeGeoFireListener();
+    String humanReadableAddress = await AssistantsMethods.searchAdressForGeographicCoOrdinates(userCurrentPosition!, context);
 
-    //AssistantsMethods.readTripsKeyForOnlineUser(context);
   }
 
   
@@ -240,7 +230,7 @@ class _MainScreenState extends State<MainScreen> {
     }
 
  Future<Map<String, dynamic>> calcularCorrida(int distance) async {
-    final url = Uri.parse('http://192.168.1.18:3300/calculate');
+    final url = Uri.parse('http://10.204.65.104:3300/calculate');
     final headers = {'Content-Type': 'application/json'};
     final body = jsonEncode({'distance': distance});
 
@@ -274,8 +264,6 @@ class _MainScreenState extends State<MainScreen> {
 bool showContainer = false;
   @override
   Widget build(BuildContext context) {
-    
-      
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
