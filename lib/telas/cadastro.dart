@@ -10,8 +10,9 @@ import 'package:flutter/material.dart';
 class CadastroUser extends StatelessWidget {
   final TextEditingController _controladorNome = TextEditingController();
   final TextEditingController _controladorEmail = TextEditingController();
+  final TextEditingController _controladorCpf = TextEditingController();
+  final TextEditingController _controladorNumeroTelefone = TextEditingController();
   final TextEditingController _controladorSenha = TextEditingController();
-  final TextEditingController _controladorConfirmacaoSenha = TextEditingController();
 
   usuarioController nUsuarioController = usuarioController();
 
@@ -25,7 +26,7 @@ class CadastroUser extends StatelessWidget {
         child: Column(
           
           children: [
-            Image.asset('./assets/img/logo.png',width: 300,),
+            Image.asset('../assets/img/logo.png',width: 300,),
             const Center(
               child: Text('Cadastre-se:',
                   textDirection: TextDirection.ltr,
@@ -65,28 +66,28 @@ class CadastroUser extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 20,right: 20),
               child: TextField(
-                controller: _controladorSenha,
+                controller: _controladorCpf,
                 decoration: const InputDecoration(
-                  labelText: 'Senha',
-                  hintText: 'Informe sua senha',
+                  labelText: 'CPF',
+                  hintText: 'CPF',
                   prefixIcon: Padding(
                       padding: EdgeInsets.all(5),
                       child:
-                      Icon(Icons.key)),
+                      Icon(Icons.document_scanner)),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 20,right: 20),
               child: TextField(
-                controller: _controladorConfirmacaoSenha,
+                controller: _controladorNumeroTelefone,
                 decoration: const InputDecoration(
-                  labelText: 'Confirmar Senha',
-                  hintText: 'Confirme sua senha',
+                  labelText: 'Número de Telefone',
+                  hintText: 'Telefone',
                   prefixIcon: Padding(
                       padding: EdgeInsets.all(5),
                       child:
-                      Icon(Icons.key)),
+                      Icon(Icons.phone)),
                 ),
               ),
             ),
@@ -108,7 +109,7 @@ class CadastroUser extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  nUsuarioController.novoUsuario(_controladorNome.text, _controladorEmail.text, _controladorSenha.text);
+                  nUsuarioController.auth(_controladorNome.text, _controladorEmail.text, _controladorCpf.hashCode, _controladorNumeroTelefone.text);
                   _showSuccessDialog(context);
                   },
               ),
