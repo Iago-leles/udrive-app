@@ -16,7 +16,7 @@ class LoginUser extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Image.asset('./assets/img/logo.png', width: 300,),
+            Image.asset('../assets/img/logo.png', width: 300,),
             const Center(
               child: Text('Login:',
                   textDirection: TextDirection.ltr,
