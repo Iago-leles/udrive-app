@@ -46,8 +46,6 @@ class _MainScreenState extends State<MainScreen> {
 
   GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
 
-  
-
   double searchLocationContainerHeight = 220;
   double waitingResponsefromDriverContainerHeight = 0;
   double assignedDriverInfoContainerHeight = 0;
@@ -64,7 +62,6 @@ class _MainScreenState extends State<MainScreen> {
   Set<Marker> markersSet = {};
   Set<Circle> circlesSet = {};
 
-
   bool openNavigationDrawer = true;
 
   bool activeNearbyDriverKeysLoaded = false;
@@ -72,109 +69,120 @@ class _MainScreenState extends State<MainScreen> {
   BitmapDescriptor? activeNearbyIcon;
 
   locateUserPosition() async {
-    Position cPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    Position cPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
     userCurrentPosition = cPosition;
 
-    LatLng latLngPosition = LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
-    CameraPosition cameraPosition = CameraPosition(target: latLngPosition, zoom: 15);
+    LatLng latLngPosition =
+        LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
+    CameraPosition cameraPosition =
+        CameraPosition(target: latLngPosition, zoom: 15);
 
-    newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+    newGoogleMapController!
+        .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-    String humanReadableAddress = await AssistantsMethods.searchAdressForGeographicCoOrdinates(userCurrentPosition!, context);
-
+    String humanReadableAddress =
+        await AssistantsMethods.searchAdressForGeographicCoOrdinates(
+            userCurrentPosition!, context);
   }
 
-  
+  Future<void> drawPolylineFromOriginToDestination() async {
+    var originPosition =
+        Provider.of<AppInfo>(context, listen: false).userPickUpLocation;
+    var destinationPosition =
+        Provider.of<AppInfo>(context, listen: false).userDropOffLocation;
 
-  Future<void> drawPolylineFromOriginToDestination() async{
-    var originPosition = Provider.of<AppInfo>(context, listen: false).userPickUpLocation;
-    var destinationPosition = Provider.of<AppInfo>(context, listen: false).userDropOffLocation;
-
-    var originLatLng = LatLng(originPosition!.locationLatitude!, originPosition!.locationLongitude!);
-    var destinationLatLng = LatLng(destinationPosition!.locationLatitude!, destinationPosition!.locationLongitude!);
+    var originLatLng = LatLng(
+        originPosition!.locationLatitude!, originPosition!.locationLongitude!);
+    var destinationLatLng = LatLng(destinationPosition!.locationLatitude!,
+        destinationPosition!.locationLongitude!);
 
     showDialog(
-      context: context,
-      builder: (BuildContext context) => ProgressDialog(message: "Por favor espere ...",)
+        context: context,
+        builder: (BuildContext context) => ProgressDialog(
+              message: "Por favor espere ...",
+            ));
+
+    var directionsDetailsInfo =
+        await AssistantsMethods.obtainOriginToDestinationDirectionDetails(
+            originLatLng, destinationLatLng);
+
+    var valueResponse =
+        await calcularCorrida(directionsDetailsInfo.distance_value!);
+
+    var message = valueResponse["Message"];
+    var decimalValue = double.parse(message) / 2000;
+    var valuePure = NumberFormat("#,##0.00", "pt_BR").format(decimalValue);
+
+    setState(() {
+      tripDirectionDetailsInfo = directionsDetailsInfo;
+      valueRun = valuePure;
+    });
+
+    print("Valor da corrida: ${directionsDetailsInfo.distance_value}");
+
+    Navigator.pop(context);
+
+    PolylinePoints pPoints = PolylinePoints();
+    List<PointLatLng> decodePolyLinePointsResultList =
+        pPoints.decodePolyline(directionsDetailsInfo.e_points!);
+
+    plineCoordinatedList.clear();
+
+    if (decodePolyLinePointsResultList.isNotEmpty) {
+      decodePolyLinePointsResultList.forEach((PointLatLng pointLatLng) {
+        plineCoordinatedList
+            .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
+      });
+    }
+
+    polylineSet.clear();
+
+    setState(() {
+      Polyline polyline = Polyline(
+        color: Colors.blue,
+        polylineId: PolylineId("PolylineID"),
+        jointType: JointType.round,
+        points: plineCoordinatedList,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        geodesic: true,
+        width: 5,
       );
 
-      var directionsDetailsInfo = await AssistantsMethods.obtainOriginToDestinationDirectionDetails(originLatLng, destinationLatLng);
-
-      var valueResponse = await calcularCorrida(directionsDetailsInfo.distance_value!);
-
-      var message = valueResponse["Message"];
-      var decimalValue = double.parse(message) / 2000;
-      var valuePure = NumberFormat("#,##0.00", "pt_BR").format(decimalValue);
-
-
-
-      setState(() {
-        tripDirectionDetailsInfo = directionsDetailsInfo;
-        valueRun = valuePure;
-      });
-
-      print("Valor da corrida: ${directionsDetailsInfo.distance_value}");
-
-      Navigator.pop(context);
-
-     PolylinePoints pPoints = PolylinePoints();
-     List<PointLatLng> decodePolyLinePointsResultList = pPoints.decodePolyline(directionsDetailsInfo.e_points!);
-
-     plineCoordinatedList.clear();
-
-     if(decodePolyLinePointsResultList.isNotEmpty){
-      decodePolyLinePointsResultList.forEach((PointLatLng pointLatLng) { 
-        plineCoordinatedList.add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
-      });
-     }
-
-     polylineSet.clear();
-
-      setState(() {
-         Polyline polyline = Polyline(
-          color: Colors.blue,
-          polylineId: PolylineId("PolylineID"),
-          jointType: JointType.round,
-          points: plineCoordinatedList,
-          startCap: Cap.roundCap,
-          endCap: Cap.roundCap,
-          geodesic: true,
-          width: 5,
-          );
-
-          polylineSet.add(polyline);
-      });
+      polylineSet.add(polyline);
+    });
 
     LatLngBounds boundsLatLng;
-    if(originLatLng.latitude > destinationLatLng.latitude && originLatLng.longitude > destinationLatLng.longitude){
-      boundsLatLng = LatLngBounds(southwest: destinationLatLng, northeast: originLatLng);
-    }
-    else if(originLatLng.longitude > destinationLatLng.longitude){
+    if (originLatLng.latitude > destinationLatLng.latitude &&
+        originLatLng.longitude > destinationLatLng.longitude) {
+      boundsLatLng =
+          LatLngBounds(southwest: destinationLatLng, northeast: originLatLng);
+    } else if (originLatLng.longitude > destinationLatLng.longitude) {
       boundsLatLng = LatLngBounds(
-        southwest: LatLng(originLatLng.latitude, destinationLatLng.longitude), 
-        northeast: LatLng(destinationLatLng.latitude, originLatLng.longitude)
-        );
-    }else if(originLatLng.latitude > destinationLatLng.latitude){
+          southwest: LatLng(originLatLng.latitude, destinationLatLng.longitude),
+          northeast:
+              LatLng(destinationLatLng.latitude, originLatLng.longitude));
+    } else if (originLatLng.latitude > destinationLatLng.latitude) {
       boundsLatLng = LatLngBounds(
-        southwest: LatLng(destinationLatLng.latitude, originLatLng.longitude), 
-        northeast: LatLng(originLatLng.latitude, destinationLatLng.longitude)
-        );
-    }else{
-      boundsLatLng = LatLngBounds(southwest: originLatLng, northeast: destinationLatLng);
+          southwest: LatLng(destinationLatLng.latitude, originLatLng.longitude),
+          northeast:
+              LatLng(originLatLng.latitude, destinationLatLng.longitude));
+    } else {
+      boundsLatLng =
+          LatLngBounds(southwest: originLatLng, northeast: destinationLatLng);
     }
 
-    newGoogleMapController!.animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 80));
+    newGoogleMapController!
+        .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 80));
 
     Marker originMarker = Marker(
       markerId: MarkerId("originID"),
-      infoWindow: InfoWindow(
-        title: originPosition.locationName, 
-        snippet: "Origem"),
-        position: originLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        );
-
-    
+      infoWindow:
+          InfoWindow(title: originPosition.locationName, snippet: "Origem"),
+      position: originLatLng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+    );
 
     // Container valueRunContainer = Container(
     //   padding: EdgeInsets.all(16),
@@ -189,47 +197,44 @@ class _MainScreenState extends State<MainScreen> {
     //   ),
     // );
 
-        
     Marker destinationMarker = Marker(
       markerId: MarkerId("destinationID"),
       infoWindow: InfoWindow(
-        title: destinationPosition.locationName, 
-        snippet: "Destino"),
-        position: destinationLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        );
+          title: destinationPosition.locationName, snippet: "Destino"),
+      position: destinationLatLng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+    );
 
-        setState(() {
-          markersSet.add(originMarker);
-          markersSet.add(destinationMarker);
-        });
+    setState(() {
+      markersSet.add(originMarker);
+      markersSet.add(destinationMarker);
+    });
 
-      Circle originCircle = Circle(
-        circleId: CircleId("originID"),
-        fillColor: Colors.red,
-        radius: 12,
-        strokeWidth: 3,
-        strokeColor: Colors.white,
-        center: originLatLng,
-        );
+    Circle originCircle = Circle(
+      circleId: CircleId("originID"),
+      fillColor: Colors.red,
+      radius: 12,
+      strokeWidth: 3,
+      strokeColor: Colors.white,
+      center: originLatLng,
+    );
 
-        Circle destinationCircle = Circle(
-        circleId: CircleId("destinationID"),
-        fillColor: Colors.green,
-        radius: 12,
-        strokeWidth: 3,
-        strokeColor: Colors.white,
-        center: destinationLatLng,
-        );
+    Circle destinationCircle = Circle(
+      circleId: CircleId("destinationID"),
+      fillColor: Colors.green,
+      radius: 12,
+      strokeWidth: 3,
+      strokeColor: Colors.white,
+      center: destinationLatLng,
+    );
 
-        setState(() {
-          circlesSet.add(originCircle);
-          circlesSet.add(destinationCircle);
-        });
+    setState(() {
+      circlesSet.add(originCircle);
+      circlesSet.add(destinationCircle);
+    });
+  }
 
-    }
-
- Future<Map<String, dynamic>> calcularCorrida(int distance) async {
+  Future<Map<String, dynamic>> calcularCorrida(int distance) async {
     final url = Uri.parse('http://10.204.65.104:3300/calculate');
     final headers = {'Content-Type': 'application/json'};
     final body = jsonEncode({'distance': distance});
@@ -242,8 +247,6 @@ class _MainScreenState extends State<MainScreen> {
     } else {
       throw Exception('Falha ao chamar a API: ${response.statusCode}');
     }
-
-    
   }
 
   checkIfLocationPermissionAlloned() async {
@@ -261,7 +264,8 @@ class _MainScreenState extends State<MainScreen> {
 
     checkIfLocationPermissionAlloned();
   }
-bool showContainer = false;
+
+  bool showContainer = false;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -271,7 +275,7 @@ bool showContainer = false;
       child: Scaffold(
         appBar: AppBar(
           title: Text("Bem vindo!"),
-         ),
+        ),
         body: Stack(
           children: [
             GoogleMap(
@@ -293,9 +297,6 @@ bool showContainer = false;
 
                 locateUserPosition();
               },
-
-              
-              
             ),
             Positioned(
               bottom: 0,
@@ -341,11 +342,10 @@ bool showContainer = false;
                                                 fontWeight: FontWeight.bold),
                                           ),
                                           Text(
-                                            Provider.of<AppInfo>(context).userPickUpLocation != null
-                                                ? "${(Provider.of<AppInfo>(context)
-                                                            .userPickUpLocation!
-                                                            .getLocationName())
-                                                        .substring(0, 40)}..."
+                                            Provider.of<AppInfo>(context)
+                                                        .userPickUpLocation !=
+                                                    null
+                                                ? "${(Provider.of<AppInfo>(context).userPickUpLocation!.getLocationName()).substring(0, 40)}..."
                                                 : "Nenhum endereço selecionado",
                                             style: TextStyle(
                                                 color: Colors.grey,
@@ -371,24 +371,27 @@ bool showContainer = false;
                                   padding: EdgeInsets.all(5),
                                   child: GestureDetector(
                                     onTap: () async {
-                                      var responseFromSearchScreen = await Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
+                                      var responseFromSearchScreen =
+                                          await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (c) =>
+                                                      SearchPlacesScreen()));
 
-                                      if(responseFromSearchScreen == 'obtainerDropOff'){
+                                      if (responseFromSearchScreen ==
+                                          'obtainerDropOff') {
                                         setState(() {
                                           openNavigationDrawer = false;
                                         });
-                                      } 
+                                      }
 
                                       await drawPolylineFromOriginToDestination();
-                                    
-                                      
+
                                       setState(() {
-                                        if(!showContainer){
+                                        if (!showContainer) {
                                           showContainer = !showContainer;
                                         }
-                                        
                                       });
-                                      
                                     },
                                     child: Row(
                                       children: [
@@ -409,23 +412,25 @@ bool showContainer = false;
                                                   fontWeight: FontWeight.bold),
                                             ),
                                             Text(
-                                              Provider.of<AppInfo>(context).userDropOffLocation !=
-                                                      null ? Provider.of<AppInfo>(context)
-                                                              .userDropOffLocation!
-                                                              .getLocationName()+ "..."
+                                              Provider.of<AppInfo>(context)
+                                                          .userDropOffLocation !=
+                                                      null
+                                                  ? Provider.of<AppInfo>(
+                                                              context)
+                                                          .userDropOffLocation!
+                                                          .getLocationName() +
+                                                      "..."
                                                   : "Nenhum endereço selecionado",
                                               style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 14,
-                                                  ),
+                                                color: Colors.grey,
+                                                fontSize: 14,
+                                              ),
                                             )
                                           ],
                                         )
                                       ],
-                                      
                                     ),
                                   ),
-                                  
                                 )
                               ],
                             ),
@@ -433,17 +438,18 @@ bool showContainer = false;
                         ],
                       ),
                     ),
-
-                    SizedBox(height: 5,),
-                    
-                    if(showContainer)
-                    Container(
+                    SizedBox(
+                      height: 5,
+                    ),
+                    if (showContainer)
+                      Container(
                         padding: EdgeInsets.fromLTRB(50, 10, 50, 10),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: Color.fromARGB(255, 119, 183, 255), // Cor da borda
+                            color: Color.fromARGB(
+                                255, 119, 183, 255), // Cor da borda
                             width: 5, // Espessura da borda
                           ),
                         ),
@@ -456,18 +462,21 @@ bool showContainer = false;
                           ),
                         ),
                       ),
-                    
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (c) => PrecisePickupScreen()));
-                          }, 
-                          child: Text("Mudar localização",
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (c) => PrecisePickupScreen()));
+                          },
+                          child: Text(
+                            "Mudar localização",
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
@@ -476,18 +485,17 @@ bool showContainer = false;
                               fontSize: 16,
                             ),
                           ),
-                          ),
-
-                          SizedBox(width: 10,),
-
-                          ElevatedButton(
-                          onPressed: () {
-
-                          }, 
-                          child: Text("Solicitar corrida",
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        ElevatedButton(
+                          onPressed: () {},
+                          child: Text(
+                            "Solicitar corrida",
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
@@ -496,16 +504,13 @@ bool showContainer = false;
                               fontSize: 16,
                             ),
                           ),
-                          ),
-
+                        ),
                       ],
                     )
-
                   ],
                 ),
               ),
             )
-
           ],
         ),
       ),
