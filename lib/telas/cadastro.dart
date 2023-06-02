@@ -114,7 +114,22 @@ class CadastroUser extends StatelessWidget {
                           _controladorNumeroTelefone.text));
                     },
                   ),
-                ))
+                )),
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: TextButton(
+                  child: const Text(
+                    'Voltar ao login',
+                    style: TextStyle(
+                      color: Colors.blue,
+                    ),
+                  ),
+                  onPressed: () async {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginUser()),
+                    );
+                  }
+              ),
+            ),
           ],
         ),
       ),
@@ -134,7 +149,7 @@ class CadastroUser extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) =>  (mensagem).contains("Cadastro realizado com sucesso!") ?  MainScreen(): CadastroUser()),
+                  MaterialPageRoute(builder: (context) =>  (mensagem).contains("Cadastro realizado com sucesso!") ?  LoginUser(): CadastroUser()),
                 );
               },
             ),

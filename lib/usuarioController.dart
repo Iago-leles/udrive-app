@@ -31,11 +31,20 @@ class usuarioController {
     return "Erro.";
   }
 
-  void realizarLogin(String email, String senha) {
+  Future<String> realizarLogin(String email, String senha) async {
     try {
-      lService.login(email, senha);
+      int status = await lService.login(email, senha);
+
+      if(status == 200){
+        return "Sucesso";
+      }
+      else{
+        return "Dados incorretos!";
+      }
     } catch (error, stackTrace) {
       dev.log('Error: ', error: error, stackTrace: stackTrace);
     }
+
+    return "Erro, tente novamente.";
   }
 }

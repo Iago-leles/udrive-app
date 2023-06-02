@@ -1,7 +1,9 @@
+import 'package:distribuida/telas/main_screen.dart';
 import 'package:distribuida/usuario.dart';
 import 'package:flutter/material.dart';
 
 import '../usuarioController.dart';
+import 'cadastro.dart';
 
 class LoginUser extends StatelessWidget {
 
@@ -56,7 +58,8 @@ class LoginUser extends StatelessWidget {
             Padding(
                 padding: const EdgeInsets.all(50.0),
                 child: SizedBox(
-                  
+                  width: 150,
+                  height: 45,
                   child: TextButton(
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.blue,
@@ -69,23 +72,67 @@ class LoginUser extends StatelessWidget {
                         color: Colors.black,
                       ),
                     ),
-                    onPressed: () {
-                      nUsuarioController.realizarLogin(_controladorEmail.text, _controladorSenha.text);
-                      print("Teste");
-                    },
+                      onPressed: () async {
+                        String mensagem = await nUsuarioController
+                            .realizarLogin(
+                            _controladorEmail.text, _controladorSenha.text);
+
+
+                        if (mensagem == "Sucesso") {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MainScreen()),
+                          );
+                        } else {
+                          return _showFalhaDialog(context, mensagem);
+                        };
+                      }
                   ),
                 )
-            )
+            ),
+        Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: TextButton(
+             child: const Text(
+                'Cadastrar-se',
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
+              ),
+              onPressed: () async {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CadastroUser()),
+                  );
+              }
+          ),
+        ),
           ],
         ),
       ),
     );
   }
 
-  void realizarLogin() {
-    final String email = _controladorEmail.text;
-    final String senha = _controladorSenha.text;
-
+  void _showFalhaDialog(BuildContext context, String mensagem) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Mensagem de retorno: '),
+          content: Text(mensagem),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>  LoginUser()),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
 }
