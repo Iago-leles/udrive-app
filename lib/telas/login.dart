@@ -78,16 +78,10 @@ class LoginUser extends StatelessWidget {
                             .realizarLogin(
                             _controladorEmail.text, _controladorSenha.text);
 
-
-                        if (mensagem == "Sucesso") {
                           Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => MainScreen()),
-                          );
-                        } else {
-                          return _showFalhaDialog(context, mensagem);
-                        };
+                            context, MaterialPageRoute(
+                                builder: (context) => MainScreen()));
+
                       }
                   ),
                 )

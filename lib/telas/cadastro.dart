@@ -149,7 +149,7 @@ class CadastroUser extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) =>  (mensagem).contains("Cadastro realizado com sucesso!") ?  LoginUser(): CadastroUser()),
+                  MaterialPageRoute(builder: (context) =>  LoginUser()),
                 );
               },
             ),
