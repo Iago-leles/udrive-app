@@ -482,7 +482,7 @@ bool showContainer = false;
 
                           ElevatedButton(
                           onPressed: () {
-
+                              _showSuccessDialog();
                           }, 
                           child: Text("Solicitar corrida",
                           style: TextStyle(
@@ -509,6 +509,29 @@ bool showContainer = false;
           ],
         ),
       ),
+    );
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Parabéns, sua corrida foi solicitada!'),
+          content: Text('Os motoristas disponíveis receberão uma notificação e em caso de aceite, você será notiifcado'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>  MainScreen()),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
