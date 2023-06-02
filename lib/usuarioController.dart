@@ -19,7 +19,7 @@ class usuarioController {
     try {
       int status = await lService.auth(nUser);
       if(status == 200){
-        return "Cadastro realizado com sucesso!";
+        return "Cadastro realizado com sucesso! Enviamos seus dados de acesso para seu e-mail.";
       }
       else{
         return "Erro no cadastro, tente novamente.";
